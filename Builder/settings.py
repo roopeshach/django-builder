@@ -111,7 +111,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_AUTH = {
-    'SESSION_LOGIN': True,
+    'SESSION_LOGIN': False,
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'auth',
     'JWT_AUTH_HTTPONLY': False,
@@ -125,7 +125,6 @@ SITE_ID = 1
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
-CSRF_COOKIE_SECURE = False
 
 
 REST_FRAMEWORK = {
