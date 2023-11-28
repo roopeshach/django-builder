@@ -28,13 +28,6 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
-# Include schema-generated app URLs
-urlpatterns += [
-    re_path(r'^Website/', include('Website.urls')),
-re_path(r'^Restaurant/', include('Restaurant.urls')),
-re_path(r'^Inventory/', include('Inventory.urls')),
-]
-
 if settings.DEBUG:
     urlpatterns += [
         path('media/<path:path>', serve, {
