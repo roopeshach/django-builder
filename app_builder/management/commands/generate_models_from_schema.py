@@ -38,6 +38,7 @@ class Command(BaseCommand):
                     admin_code = self.generate_admin_code_from_schema(schema, app_name)
                     # Create or append to the app's admin.py file with the generated admin code
                     self.create_or_append_admin_file(app_name, admin_code)
+                    self.generate_serializers_from_schema(schema, app_name)
                     #write apps' name in INSTALLED_APP in settings.py
                     self.add_apps_to_installed_apps(app_name)
         
@@ -165,6 +166,52 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.NOTICE(f"'{app_name}' is already listed in INSTALLED_APPS."))
     
+    def generate_serializers_from_schema(self, schema, app_name):
+        """
+        Generates serializers code based on a given schema.
+        Parameters:
+        schema (dict): The dictionary containing all the information about the database schema.
+        app_name (str): The name of the Django app.
+        Function:
+        This function generates serializers for each model in the schema and writes them to serializers.py in the app directory.
+        If serializers.py doesn't exist, it creates the file.
+        """
+        serializers_code = ""
+
+        # Get the models from the schema
+        models = schema.get("models", [])
+
+        for model in models:
+            model_name = model["modelName"]
+            fields = model["fields"]
+
+            # Generate code for the serializer class
+            serializers_code += f'from rest_framework import serializers\n'
+            serializers_code += f'from .models import {model_name}\n\n'
+            serializers_code += f'class {model_name}Serializer(serializers.ModelSerializer):\n'
+            serializers_code += f'    class Meta:\n'
+            serializers_code += f'        model = {model_name}\n'
+            serializers_code += f'        fields = ['
+            
+            # Include fields in the serializer
+            for field in fields:
+                field_name = field["fieldName"]
+                serializers_code += f"'{field_name}', "
+            
+            serializers_code += f"]\n\n"
+
+        # Define the serializers.py file path
+        serializers_file_path = os.path.join(app_name, "serializers.py")
+
+        # Check if serializers.py exists, if not, create it
+        if not os.path.exists(serializers_file_path):
+            with open(serializers_file_path, 'w') as serializers_file:
+                serializers_file.write(serializers_code)
+        else:
+            # If serializers.py already exists, append the generated serializers to it
+            with open(serializers_file_path, 'a') as serializers_file:
+                serializers_file.write(serializers_code)
+
     
     def generate_admin_code_from_schema(self, schema, app_name):
         """
@@ -360,14 +407,12 @@ JAZZMIN_TWEAKS = {{
         full_settings_content = f'''
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-i7w8dm6ml*(ii@e&#f-fw23i0$!9izhthjm=y#dgi!!lu2(p+g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -385,6 +430,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app_builder',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'allauth',
+    'dj_rest_auth.registration',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'drf_yasg',
+    'corsheaders',
 ] +  [{installed_apps_content}] + ['Authentication']
 
 MIDDLEWARE = [
@@ -445,12 +499,10 @@ AUTH_PASSWORD_VALIDATORS = [
     }},
 ]
 
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kathmandu'
 
 USE_I18N = True
 
@@ -458,8 +510,39 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+REST_AUTH = {{
+    'SESSION_LOGIN': True,
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'auth',
+    'JWT_AUTH_HTTPONLY': False,
+    'AUTH_TOKEN_VALIDITY': timedelta(minutes=1)
+}}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+SITE_ID = 1
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+CSRF_COOKIE_SECURE = False
+
+
+REST_FRAMEWORK = {{
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+    ),
+
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+}}
 
 STATIC_URL = '/static/'
 import os
@@ -478,13 +561,55 @@ AUTH_USER_MODEL = "Authentication.ApplicationUser"
 # Jazzmin tweaks
 {jazzmin_tweaks_content}
 '''
+        urls_content = f'''
+from django.urls import include, re_path, path
+from django.contrib import admin
+from django.views.generic import RedirectView
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+from django.views.static import serve
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title='{project_name} API Docs',
+        default_version='v2',
+    )
+)
+
+urlpatterns = [
+
+    re_path(r'^dj-rest-auth/', include('dj_rest_auth.urls')),
+    re_path(r'^dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    re_path(r'^account/', include('allauth.urls')),
+    re_path(r'^admin/', admin.site.urls),
+    re_path(r'^accounts/profile/$', RedirectView.as_view(url='/', permanent=True), name='profile-redirect'),
+    re_path(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='api_docs')
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('media/<path:path>', serve, {{
+            'document_root': settings.MEDIA_ROOT,
+        }}),
+    ]
+
+admin.site.site_header = "{project_name} - Platform Admin"
+admin.site.site_title = "{project_name} - Platform Admin Portal"
+admin.site.index_title = "Welcome to {project_name} - Platform Portal"
+        '''
 
         # Define the path to the settings.py file
         settings_file_path = os.path.join(settings.BASE_DIR, project_name, 'settings.py')
+        urls_file_path = os.path.join(settings.BASE_DIR, project_name, 'urls.py')
 
         # Write the generated content to the settings.py file
         with open(settings_file_path, 'w') as settings_file:
             settings_file.write(full_settings_content)
-
+        with open(urls_file_path, 'w') as urls_file:
+            urls_file.write(urls_content)
         # Print a success message
-        self.stdout.write(self.style.SUCCESS("settings.py file has been updated successfully."))
+        self.stdout.write(self.style.SUCCESS("settings.py and urls.py file has been updated successfully."))

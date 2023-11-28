@@ -9,22 +9,24 @@ fi
 # Check if Jazzmin is installed
 if ! pip freeze | grep -q 'django-jazzmin'; then
     echo "Jazzmin is not installed. Installing Jazzmin..."
-    pip install django-jazzmin
+    pip install django-jazzmin djangorestframework djangorestframework-simplejwt drf-yasg requests PyJWT dj-rest-auth coreapi django-allauth django-cors-headers
 fi
-
+# pip install django-jazzmin djangorestframework djangorestframework-simplejwt drf-yasg requests PyJWT dj-rest-auth coreapi django-allauth django-cors-headers
+echo "Installing Django and required packages"
+pip freeze > requirements.txt
 # Step 1: Run the Django management command to generate models from schema
 echo "Generating models from schema..."
 python manage.py generate_models_from_schema
 
 # Step 2: Find and call wsgi.py to restart the Django server
-echo "Restarting Django server..."
-wsgi_file=$(find . -name "wsgi.py")
-if [ -z "$wsgi_file" ]; then
-    echo "wsgi.py file not found."
-else
-    echo "Calling $wsgi_file to restart the server..."
-    touch "$wsgi_file"
-fi
+# echo "Restarting Django server..."
+# wsgi_file=$(find . -name "wsgi.py")
+# if [ -z "$wsgi_file" ]; then
+#     echo "wsgi.py file not found."
+# else
+#     echo "Calling $wsgi_file to restart the server..."
+#     touch "$wsgi_file"
+# fi
 
 # Step 3: Give Django some time to start up
 sleep 2
