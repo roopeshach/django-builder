@@ -1,0 +1,50 @@
+{
+    "appName": "Restaurant",
+    "models": [
+        {
+            "modelName": "Waiter",
+            "fields": [
+                {
+                    "fieldName": "name",
+                    "fieldType": "CharField",
+                    "attributes": {
+                        "max_length": "254"
+                    }
+                },
+                {
+                    "fieldName": "email",
+                    "fieldType": "CharField",
+                    "attributes": {
+                        "max_length": "250"
+                    }
+                },
+                {
+                    "fieldName": "address",
+                    "fieldType": "CharField",
+                    "attributes": {
+                        "max_length": "254"
+                    }
+                }
+            ]
+        },
+        {
+            "modelName": "Cook",
+            "fields": [
+                {
+                    "fieldName": "name",
+                    "fieldType": "CharField",
+                    "attributes": {
+                        "max_length": "254"
+                    }
+                },
+                {
+                    "fieldName": "email",
+                    "fieldType": "EmailField",
+                    "attributes": {
+                        "max_length": "254"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Schema Builder</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #json-display {
+            white-space: pre-wrap; /* For JSON formatting */
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            margin-top: 20px;
+            overflow: auto;
+        }
+        .app-container {
+            border: 1px solid #ced4da;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .model-container {
+            background-color: #e9ecef;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="container mt-5">
+    <h2>Model Schema Builder</h2>
+    <form id="schema-form" class="mb-3">
+        {% csrf_token %}
+        <div id="apps-container" class="mb-3"></div>
+        <button type="button" id="add-app-btn" class="btn btn-secondary mb-3">Add App</button>
+        <button type="submit" class="btn btn-success">Generate Schema</button>
+    </form>
+
+    <div id="json-display" class="mb-3"></div>
+    <button type="button" id="save-model-btn" class="btn btn-info">Save Model</button>
+
+    <script>
+
+        let modelFields = {{ model_fields|safe }};
+let allModels = {{ all_models|safe }};
+
+$(document).ready(function() {
+    $('#add-app-btn').click(function() {
+        addAppSection();
+    });
+
+    $('#schema-form').submit(function(event) {
+        event.preventDefault();
+        let allAppsSchema = [];
+
+        $('.app-container').each(function() {
+            let appName = $(this).find('.app-name-input').val().trim();
+            let models = [];
+
+            $(this).find('.model-container').each(function() {
+                let modelName = $(this).find('.model-name-input').val().trim();
+                let fields = [];
+
+                $(this).find('.field-container').each(function() {
+                    let fieldType = $(this).find('.field-type-selector').val();
+                    let fieldName = $(this).find('.field-name-input').val().trim();
+                    let attributes = getFieldAttributes($(this));
+
+                    fields.push({ fieldName, fieldType, attributes });
+                });
+
+                models.push({ modelName, fields });
+            });
+
+            allAppsSchema.push({ appName, models });
+        });
+
+        $('#json-display').text(JSON.stringify(allAppsSchema, null, 2));
+    });
+
+    $('#save-model-btn').click(function() {
+        let schema = $('#json-display').text();
+        if (schema) {
+            saveModel(schema);
+        } else {
+            alert('Please generate the schema first!');
+        }
+    });
+});
+
+function addAppSection() {
+    let appCounter = $('#apps-container').children().length;
+    let appHtml = `
+        <div class="app-container">
+            <input type="text" class="form-control mb-2 app-name-input" placeholder="App Name">
+            <button type="button" class="add-model-btn btn btn-primary mb-2">Add Model</button>
+            <div class="models-container"></div>
+        </div>`;
+    let $appContainer = $(appHtml).appendTo('#apps-container');
+
+    $appContainer.on('click', '.add-model-btn', function() {
+        addModelSection($appContainer.find('.models-container'));
+    });
+}
+
+function addModelSection($modelsContainer) {
+    let modelHtml = `
+        <div class="model-container">
+            <input type="text" class="form-control mb-2 model-name-input" placeholder="Model Name">
+            <button type="button" class="add-field-btn btn btn-secondary mb-2">Add Field</button>
+            <div class="fields-container"></div>
+        </div>`;
+    let $modelContainer = $(modelHtml).appendTo($modelsContainer);
+
+    $modelContainer.on('click', '.add-field-btn', function() {
+        addFieldSection($modelContainer.find('.fields-container'));
+    });
+}
+
+function addFieldSection($fieldsContainer) {
+    let fieldHtml = `
+        <div class="field-container">
+            <input type="text" class="form-control mb-2 field-name-input" placeholder="Field Name">
+            <select class="form-control mb-2 field-type-selector">
+                <option value="">Select Field Type</option>
+                ${Object.keys(modelFields).map(fieldType => `<option value="${fieldType}">${fieldType}</option>`).join('')}
+            </select>
+            <div class="field-attributes"></div>
+        </div>`;
+    let $fieldContainer = $(fieldHtml).appendTo($fieldsContainer);
+
+    $fieldContainer.find('.field-type-selector').change(function() {
+        let fieldType = $(this).val();
+        let attrHtml = getFieldAttributesHtml(fieldType);
+        $fieldContainer.find('.field-attributes').html(attrHtml);
+    });
+}
+
+function getFieldAttributesHtml(fieldType) {
+    let attrHtml = '';
+    if (modelFields[fieldType]) {
+        $.each(modelFields[fieldType], function(attr, type) {
+            attrHtml += `<input type="text" class="form-control mb-2" name="${attr}" placeholder="${attr} (${type})">`;
+        });
+    }
+    if (fieldType === 'ForeignKey') {
+        let modelSelectHtml = `<select class="form-control mb-2 related-model-selector" required>`;
+        modelSelectHtml += `<option value="">Select Related Model</option>`;
+        $.each(allModels, function(index, modelName) {
+            modelSelectHtml += `<option value="${modelName}">${modelName}</option>`;
+        });
+        modelSelectHtml += `</select>`;
+        attrHtml += modelSelectHtml;
+    }
+    return attrHtml;
+}
+
+function getFieldAttributes($fieldContainer) {
+    let attributes = {};
+    $fieldContainer.find('.field-attributes input, .field-attributes select').each(function() {
+        let attrName = $(this).attr('name');
+        attributes[attrName] = $(this).val();
+    });
+    return attributes;
+}
+
+function saveModel(schema) {
+    $.ajax({
+        url: '/save-schema/',  // Update this URL to the one configured in your Django urls.py
+        type: 'POST',
+        contentType: 'application/json',
+        data: schema,
+        success: function(response) {
+            alert('Model saved successfully!');
+        },
+        error: function(xhr, status, error) {
+            alert('An error occurred: ' + xhr.responseText);
+        }
+    });
+}
+
+    </script>
+</body>
+</html>
