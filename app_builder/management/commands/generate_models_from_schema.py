@@ -2,7 +2,7 @@ import os
 from django.core.management import BaseCommand, call_command
 from django.conf import settings
 import json
-
+from .utils import generate_index_html_content
 
 class Command(BaseCommand):
     help = 'Generate Django apps, models, migrations, admin, and DRF views from JSON schema files.'
@@ -45,6 +45,10 @@ class Command(BaseCommand):
                     self.add_apps_to_installed_apps(app_name)
         
         project_name = settings.SETTINGS_MODULE.split('.')[0]  # Get the project name
+
+        #generate index.html file
+        self.index_file_generator(project_name)
+
         # Call the generate_settings_content method with schema_generated_apps and project_name
         self.generate_settings_content(schema_generated_apps, project_name)
 
@@ -655,7 +659,7 @@ AUTH_USER_MODEL = "Authentication.ApplicationUser"
         urls_content = f'''
 from django.urls import include, re_path, path
 from django.contrib import admin
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
@@ -672,7 +676,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-
+    re_path(r'^$', TemplateView.as_view(template_name="index.html"), name='index'),
     re_path(r'^dj-rest-auth/', include('dj_rest_auth.urls')),
     re_path(r'^dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     re_path(r'^account/', include('allauth.urls')),
@@ -710,3 +714,18 @@ admin.site.index_title = "Welcome to {project_name} - Platform Portal"
             urls_file.write(urls_content)
         # Print a success message
         self.stdout.write(self.style.SUCCESS("settings.py and urls.py file has been updated successfully."))
+    
+    def index_file_generator(self, project_name):
+        # Define the path to the templates folder
+        templates_folder = os.path.join(settings.BASE_DIR, 'Authentication', 'templates')
+        # Check if the templates folder exists, and create it if not
+        if not os.path.exists(templates_folder):
+            os.makedirs(templates_folder)
+        # Define the path to the index.html file inside the templates folder
+        index_html_path = os.path.join(templates_folder, "index.html")
+        index_html_content = generate_index_html_content()
+        # Write the content to the index.html file
+        with open(index_html_path, "w") as index_file:
+            index_file.write(index_html_content)
+        # Print a success message
+        self.stdout.write(self.style.SUCCESS("index.html file has been generated and updated successfully in the templates folder."))

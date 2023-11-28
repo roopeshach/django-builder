@@ -1,7 +1,7 @@
 
 from django.urls import include, re_path, path
 from django.contrib import admin
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
@@ -18,7 +18,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-
+    re_path(r'^$', TemplateView.as_view(template_name="index.html"), name='index'),
     re_path(r'^dj-rest-auth/', include('dj_rest_auth.urls')),
     re_path(r'^dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     re_path(r'^account/', include('allauth.urls')),
@@ -27,6 +27,13 @@ urlpatterns = [
     re_path(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='api_docs')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+
+# Include schema-generated app URLs
+urlpatterns += [
+    re_path(r'^Website/', include('Website.urls')),
+re_path(r'^Restaurant/', include('Restaurant.urls')),
+re_path(r'^Inventory/', include('Inventory.urls')),
+]
 
 if settings.DEBUG:
     urlpatterns += [

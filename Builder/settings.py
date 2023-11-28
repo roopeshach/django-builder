@@ -32,8 +32,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
     'drf_yasg',
-    'corsheaders'
-    ]
+    'corsheaders',
+] +  ['Website',
+    'Restaurant',
+    'Inventory'] + ['Authentication']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -123,6 +125,7 @@ SITE_ID = 1
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
+CSRF_COOKIE_SECURE = False
 
 
 REST_FRAMEWORK = {
@@ -147,6 +150,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Media settings
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+AUTH_USER_MODEL = "Authentication.ApplicationUser"
 # Jazzmin settings
 
 JAZZMIN_SETTINGS = {

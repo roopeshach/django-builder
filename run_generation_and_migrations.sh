@@ -42,3 +42,4 @@ echo "Creating superuser..."
 echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@email.com', 'pass')" | python manage.py shell
 
 echo "Process completed."
+python manage.py runserver
