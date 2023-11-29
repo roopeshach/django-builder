@@ -1,0 +1,39 @@
+{
+    "projectName": "Reev",
+    "apps": [
+        {
+            "appName": "Blog",
+            "models": [
+                {
+                    "modelName": "Blog",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "234"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "appName": "Website",
+            "models": [
+                {
+                    "modelName": "Info",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "243"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

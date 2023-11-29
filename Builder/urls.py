@@ -18,22 +18,16 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    re_path(r'^$', TemplateView.as_view(template_name="index.html"), name='index'),
+    re_path(r'^$', TemplateView.as_view(template_name="Authentication/index.html"), name='index'),
     re_path(r'^dj-rest-auth/', include('dj_rest_auth.urls')),
     re_path(r'^dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     re_path(r'^account/', include('allauth.urls')),
+    re_path(r'^', include('app_builder.urls')),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^accounts/profile/$', RedirectView.as_view(url='/', permanent=True), name='profile-redirect'),
     re_path(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='api_docs')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
-# Include schema-generated app URLs
-urlpatterns += [
-    re_path(r'^Website/', include('Website.urls')),
-re_path(r'^Restaurant/', include('Restaurant.urls')),
-re_path(r'^Inventory/', include('Inventory.urls')),
-]
 
 if settings.DEBUG:
     urlpatterns += [

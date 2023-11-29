@@ -10,34 +10,32 @@ import os
 from django.http import JsonResponse
 from django.utils.text import slugify
 from django.conf import settings
-
 @csrf_exempt
 def save_model_schema(request):
     if request.method == 'POST':
         try:
-            # Load the list of app schemas from the request body
-            all_app_schemas = json.loads(request.body)
+            # Load the project schema from the request body
+            project_schema = json.loads(request.body)
 
-            # Iterate through each app's schema
-            for app_schema in all_app_schemas:
-                app_name = app_schema.get('appName', 'default_app')
-                app_slug = slugify(app_name)
-                
-                # Ensure the 'schema' directory exists at the project level, next to manage.py
-                schema_directory = os.path.join(settings.BASE_DIR, 'schema')
-                os.makedirs(schema_directory, exist_ok=True)
+            # Extract the project name
+            project_name = project_schema.get('projectName', 'default_project')
+            project_slug = slugify(project_name)
 
-                # Construct the file path using the app slug
-                file_path = os.path.join(schema_directory, f'{app_slug}_schema.json')
-                
-                # Write the schema to the file
-                with open(file_path, 'w', encoding='utf-8') as file:
-                    json.dump(app_schema, file, indent=4)
+            # Ensure the 'schema' directory exists at the project level, next to manage.py
+            schema_directory = os.path.join(settings.BASE_DIR, 'schema')
+            os.makedirs(schema_directory, exist_ok=True)
+
+            # Construct the file path using the project slug
+            file_path = os.path.join(schema_directory, f'{project_slug}_schema.json')
+
+            # Write the project schema to the file
+            with open(file_path, 'w', encoding='utf-8') as file:
+                json.dump(project_schema, file, indent=4)
 
             # Respond with success
             return JsonResponse({
                 'status': 'success',
-                'message': 'All app schemas saved successfully.'
+                'message': 'Project schema saved successfully.'
             })
 
         except json.JSONDecodeError:
@@ -47,6 +45,7 @@ def save_model_schema(request):
 
     else:
         return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
 def get_all_models():
     all_models = apps.get_models()
     return [model._meta.object_name for model in all_models]
