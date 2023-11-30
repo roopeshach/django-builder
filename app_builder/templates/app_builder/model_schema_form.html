@@ -36,10 +36,11 @@
         <div id="apps-container" class="mb-3">
             <!-- Apps will be added dynamically here -->
         </div>
-        <button type="button" id="add-app-btn" class="btn btn-secondary mb-3">Add App</button>
+        <button type="button" id="add-app-btn" class="btn btn-secondary ">Add App</button>
         <button type="submit" class="btn btn-success">Generate Schema</button>
     </form>
-
+    <hr>
+    <h3 class="text-danger"> JSON SCHEMA </h3>
     <div id="json-display" class="mb-3"></div>
     <button type="button" id="save-model-btn" class="btn btn-info">Save Model</button>
 
@@ -170,7 +171,13 @@
             let attributes = {};
             $fieldContainer.find('.field-attributes input, .field-attributes select').each(function() {
                 let attrName = $(this).attr('name');
-                attributes[attrName] = $(this).val();
+                // if value is empty dont Send
+                if ($(this).val().trim()) {
+                    attributes[attrName] = $(this).val();
+                    } else {
+                        delete attributes[attrName];
+                        }
+                //attributes[attrName] = $(this).val();
             });
             return attributes;
         }

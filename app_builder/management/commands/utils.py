@@ -1,3 +1,35 @@
+import os
+import zipfile
+import sys
+import subprocess
+from django.conf import settings
+
+
+def zip_project_folder(project_name):
+
+    # Find the folder with the specified project_name in the base directory
+    project_folder = os.path.join(settings.BASE_DIR, project_name)
+    if not os.path.exists(project_folder):
+        print(f"Folder '{project_name}' not found in the base directory.")
+        return
+
+    # Create the projects folder if it doesn't exist
+    projects_folder = os.path.join(settings.BASE_DIR, 'projects')
+    os.makedirs(projects_folder, exist_ok=True)
+
+    # Define the file path for the zip file
+    zip_file_path = os.path.join(projects_folder, f'{project_name}.zip')
+
+    # Create a zip file that contains the project folder
+    with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(project_folder):
+            for file in files:
+                file_path = os.path.join(root, file)
+                rel_path = os.path.relpath(file_path, project_folder)
+                zipf.write(file_path, os.path.join(project_name, rel_path))
+
+    return zip_file_path
+
 def generate_index_html_content():
     # Create the content for the index.html file with Bootstrap cards
     index_html_content = """
@@ -79,6 +111,7 @@ def generate_index_html_content():
     return index_html_content
 
 def settings_content(project_name, schema_generated_apps):
+
     jazzmin_settings_content = f'''
 JAZZMIN_SETTINGS = {{
     "site_title": "{project_name} Admin",  # Set the site title to the project name
@@ -192,9 +225,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'allauth',
-    'dj_rest_auth.registration',
+    'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.facebook',
+    'dj_rest_auth.registration',
     'drf_yasg',
     'corsheaders',
 ] +  [{installed_apps_content}] + ['Authentication']
@@ -207,6 +240,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = '{project_name}.urls'
@@ -292,7 +326,7 @@ CSRF_COOKIE_SECURE = False
 
 REST_FRAMEWORK = {{
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
     ),
@@ -366,3 +400,64 @@ admin.site.site_title = "{project_name} - Platform Admin Portal"
 admin.site.index_title = "Welcome to {project_name} - Platform Portal"
 '''
     return full_settings_content, urls_content
+
+def update_venv_and_modules(project_name):
+    # Determine the OS (Windows or Linux)
+    is_windows = sys.platform.startswith('win')
+
+    # Set up the virtual environment path
+    project_dir = os.path.join(os.getcwd())
+    venv_dir = os.path.join(project_dir, '.venv')
+
+    # Create the virtual environment
+    if is_windows:
+        subprocess.run(['python', '-m', 'venv', venv_dir], check=True)
+    else:
+        subprocess.run(['python3', '-m', 'venv', venv_dir], check=True)
+
+    # Activate the virtual environment and install Django
+    activate_script = 'activate.bat' if is_windows else 'activate'
+    activate_path = os.path.join(venv_dir, 'Scripts' if is_windows else 'bin', activate_script)
+    command = activate_path if is_windows else "source " + activate_path
+
+    return command
+    
+
+
+def get_requirements():
+    return """
+asgiref
+certifi
+cffi
+charset-normalizer
+coreapi
+coreschema
+cryptography
+defusedxml
+dj-rest-auth
+django
+django-allauth
+django-cors-headers
+django-jazzmin
+djangorestframework
+djangorestframework-simplejwt
+drf-yasg
+idna
+inflection
+itypes
+Jinja2
+MarkupSafe
+oauthlib
+packaging
+Pillow
+pycparser
+PyJWT
+python3-openid
+pytz
+PyYAML
+requests
+requests-oauthlib
+sqlparse
+uritemplate
+urllib3
+"""

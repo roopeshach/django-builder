@@ -10,6 +10,10 @@ import os
 from django.http import JsonResponse
 from django.utils.text import slugify
 from django.conf import settings
+
+def index(request):
+    return render(request, 'app_builder/index.html')
+
 @csrf_exempt
 def save_model_schema(request):
     if request.method == 'POST':
@@ -50,13 +54,26 @@ def get_all_models():
     all_models = apps.get_models()
     return [model._meta.object_name for model in all_models]
 
+def convert_bools_for_js(value):
+    if isinstance(value, bool):
+        return str(value).lower()
+    return value
 
+# Constants for required and not required options
 REQUIRED = 'required'
+NOT_REQUIRED = 'not_required'
 
 SPECIAL_FIELD_ARGS = {
     'ForeignKey': {
         'to': REQUIRED,
         'on_delete': 'models.CASCADE',  # This is typically the required argument
+    },
+    'OneToOneField': {
+        'to': REQUIRED,
+        'on_delete': 'models.CASCADE',
+    },
+    'ManyToManyField': {
+        'to': REQUIRED,
     },
     'CharField': {
         'max_length': REQUIRED,  # Indicate that max_length is required for CharFields
@@ -70,14 +87,13 @@ def get_field_options(field_class):
         return SPECIAL_FIELD_ARGS[field_name]
 
     # Attempt to instantiate the field to get default arguments
-    # This may not be comprehensive for all field types and does not account for inherited defaults
     try:
         field_instance = field_class()
         name, path, args, kwargs = field_instance.deconstruct()
         return kwargs
     except TypeError:
         # Handle cases where instantiation fails
-        return {arg: REQUIRED for arg in inspect.getfullargspec(field_class.__init__).args if arg != 'self'}
+        return {arg: REQUIRED if arg in SPECIAL_FIELD_ARGS.get(field_name, {}) else NOT_REQUIRED for arg in inspect.getfullargspec(field_class.__init__).args if arg != 'self'}
 
 def get_all_model_fields():
     model_field_classes = {}
@@ -87,12 +103,6 @@ def get_all_model_fields():
             field_options = get_field_options(field_class)
             model_field_classes[field_name] = field_options
     return model_field_classes
-
-
-def convert_bools_for_js(value):
-    if isinstance(value, bool):
-        return str(value).lower()
-    return value
 
 def model_schema_view(request):
     model_fields = get_all_model_fields()

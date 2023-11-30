@@ -1,31 +1,16 @@
 
 from django.urls import include, re_path, path
 from django.contrib import admin
-from django.views.generic import RedirectView, TemplateView
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-
 from django.conf import settings
 from django.conf.urls.static import static
 
 from django.views.static import serve
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title='Builder API Docs',
-        default_version='v2',
-    )
-)
-
 urlpatterns = [
-    re_path(r'^$', TemplateView.as_view(template_name="Authentication/index.html"), name='index'),
-    re_path(r'^dj-rest-auth/', include('dj_rest_auth.urls')),
-    re_path(r'^dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-    re_path(r'^account/', include('allauth.urls')),
+  
     re_path(r'^', include('app_builder.urls')),
     re_path(r'^admin/', admin.site.urls),
-    re_path(r'^accounts/profile/$', RedirectView.as_view(url='/', permanent=True), name='profile-redirect'),
-    re_path(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='api_docs')
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

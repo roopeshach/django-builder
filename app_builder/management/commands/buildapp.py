@@ -3,6 +3,7 @@ import json
 import os
 from django.conf import settings
 import subprocess
+from .utils import zip_project_folder, update_venv_and_modules, get_requirements
 
 class Command(BaseCommand):
     help = 'Generate Django apps, models, migrations, admin, and DRF views from JSON schema files.'
@@ -13,26 +14,21 @@ class Command(BaseCommand):
         The command takes one argument: the path to the JSON Schema file.
         It will generate all of the following in the same directory as the schema file:
         - A Django model (with fields corresponding to each property in the schema)
-        - A migration file that adds this model to the database
         - An admin class with list/detail view templates
         - A Django Rest Framework API Viewset with serializer classes for both list and detail views
         - A URL configuration entry pointing at the API Viewset
         """
         # Define the path to the schema directory next to manage.py
         schema_directory = os.path.join(settings.BASE_DIR, 'schema')
-
         # Check if the schema directory exists
         if not os.path.exists(schema_directory):
             self.stdout.write(self.style.ERROR('Schema directory does not exist'))
             return
-
         # Find schema files ending with "_schema.json" in the directory
         schema_files = [f for f in os.listdir(schema_directory) if f.endswith('_schema.json')]
-
         if not schema_files:
             self.stdout.write(self.style.ERROR('No schema files found in the directory'))
             return
-
         try:
             for schema_file_name in schema_files:
                 schema_file_path = os.path.join(schema_directory, schema_file_name)
@@ -40,37 +36,38 @@ class Command(BaseCommand):
                 # Load the schema from the JSON file
                 with open(schema_file_path, 'r', encoding='utf-8') as schema_file:
                     schema = json.load(schema_file)
-
                 # Extract project name, apps, and other schema data
                 project_name = schema.get('projectName')
                 apps = schema.get('apps', [])
                 self.stdout.write(self.style.SUCCESS(f'Project Name (from {schema_file_name}): {project_name}\n'))
-
                 # Create the Django project
                 if not self.create_django_project(project_name):
                     continue
-
                 self.create_authentication_app(project_name, schema)
-
                 # Create the Django apps within the project
                 app_names = [app.get('appName') for app in apps]
                 if not self.create_apps(project_name, app_names, schema):
                     continue
-
                 self.generate_settings_content(app_names, project_name)
-                
                 self.index_file_generator(project_name)
-
+                self.set_requirements(project_name)
+                command = update_venv_and_modules(project_name)
                 self.stdout.write(self.style.ERROR(f'''
 Project (from {schema_file_name}): {project_name} is built successfully.\n 
-Enter following command:\n\t
-    cd {project_name}
+Copy following command and Enter in console:\n\t
+    cd {settings.BASE_DIR}/{project_name}
+    {command}
+    pip install -r requirements.txt
+    python manage.py makemigrations Authentication
+    python manage.py migrate
     python manage.py makemigrations
     python manage.py migrate
     echo "from django.contrib.auth import get_user_model;User = get_user_model(); User.objects.create_superuser('admin', 'admin@email.com', 'pass')" | python manage.py shell
     python manage.py runserver
             '''))
-
+            zip_file_path = zip_project_folder(project_name)
+            if zip_file_path:
+                print(f'Folder "{project_name}" zipped and saved as: {zip_file_path}')
         except json.JSONDecodeError:
             self.stdout.write(self.style.ERROR('Invalid JSON format in one or more schema files'))
         except Exception as e:
@@ -177,21 +174,30 @@ Enter following command:\n\t
             models_py_path = os.path.join(models_dir, 'models.py')
 
             models_code = f"# Models for {app_name} app\n\n"
-            models_code += f"from django.db import models \n\n\n"
+            models_code += f"from django.db import models\n\n"
+
             # Iterate through models in the app's schema
             for model_schema in app_schema.get('models', []):
                 model_name = model_schema.get('modelName', 'DefaultModel')
                 fields = model_schema.get('fields', [])
-                
+
                 models_code += f"class {model_name}(models.Model):\n"
                 for field in fields:
                     field_name = field.get('fieldName')
                     field_type = field.get('fieldType')
                     attributes = field.get('attributes', {})
 
-                    attr_str = ', '.join([f'{key}={value}' for key, value in attributes.items() if key != 'undefined'])
+                    # Filter out empty attributes and 'undefined'
+                    valid_attributes = {key: value for key, value in attributes.items() if value and key != 'undefined'}
+
+                    # Prepare a list of attributes in string format
+                    attr_list = [f'{key}="{value}"' if key not in [ 'max_length','on_delete'] else f'{key}={value}' for key, value in valid_attributes.items()]
+
+                    # Join the attributes into a single string
+                    attr_str = ', '.join(attr_list)
+
                     models_code += f"    {field_name} = models.{field_type}({attr_str})\n"
-                    models_code += "\n"  # Add newline after each model definition
+                    # models_code += "\n"  # Add newline after each field definition
 
                 models_code += '\n'
 
@@ -203,7 +209,7 @@ Enter following command:\n\t
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"An error occurred while creating models for app {app_name}: {str(e)}"))
             return False
-
+        
     def generate_serializers_for_app(self, project_name, app_name, app_schema):
         """
         Generate serializers for an app based on the provided schema and create the serializers.py file if it doesn't exist.
@@ -277,8 +283,8 @@ Enter following command:\n\t
                 model_name = model_schema.get('modelName', 'DefaultModel')
                 fields = model_schema.get('fields', [])
 
-                # Define list_display and search_fields options based on fields
-                list_display = [field['fieldName'] for field in fields]
+                # Exclude fields with ManyToManyField attribute
+                list_display = [field['fieldName'] for field in fields if field['fieldType'] != 'ManyToManyField']
                 search_fields = list_display
 
                 # Generate code for the model's admin class using the @admin.register decorator
@@ -296,6 +302,7 @@ Enter following command:\n\t
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"An error occurred while generating and saving admin for app {app_name}: {str(e)}"))
             return False
+
 
     def generate_and_save_viewsets_code_for_app(self, project_name, app_name, app_schema):
         """
@@ -477,6 +484,11 @@ admin.site.register(ApplicationUser, ApplicationUserAdmin)
             return False
 
     def index_file_generator(self, project_name):
+            """
+            Generate the index.html file for Django application
+            :param project_name: The name of the Django application
+            :return: None
+            """
             # Define the path to the templates folder
             from .utils import generate_index_html_content
             templates_folder = os.path.join(settings.BASE_DIR,project_name, 'Authentication', 'templates')
@@ -493,6 +505,12 @@ admin.site.register(ApplicationUser, ApplicationUserAdmin)
             self.stdout.write(self.style.SUCCESS("index.html file has been generated and updated successfully in the templates folder."))
 
     def generate_settings_content(self, schema_generated_apps, project_name):
+        """
+        Generates settings.py file content based on the apps generated by the user
+        :param schema_generated_apps: A dictionary containing all the apps that were created by the user
+        :param project_name: The name of the Django application
+        :return: None
+        """
         from .utils import settings_content
         full_settings_content, urls_content = settings_content(project_name, schema_generated_apps)
         # Define the path to the settings.py file
@@ -507,3 +525,19 @@ admin.site.register(ApplicationUser, ApplicationUserAdmin)
         # Print a success message
         self.stdout.write(self.style.SUCCESS("settings.py and urls.py file has been updated successfully."))
     
+    def set_requirements(self, project_name):
+        """
+        Adds requirements.txt file in the root directory of the project
+        :param project_name: Name of the django app
+        :return: None
+        """
+        requirements_txt_path = os.path.join(settings.BASE_DIR, project_name , 'requirements.txt')
+        try:
+            requirements = get_requirements()
+            with open(requirements_txt_path, 'w') as requirement_file:
+                requirement_file.write(requirements)
+                self.stdout.write(self.style.SUCCESS('Requirement.txt file created'))
+        except Exception as e:
+            self.stderr.write(str(e))
+        
+
