@@ -43,15 +43,16 @@ class Command(BaseCommand):
                 # Create the Django project
                 if not self.create_django_project(project_name):
                     continue
-                self.create_authentication_app(project_name, schema)
+                self.create_authentication_app(project_name)
                 # Create the Django apps within the project
                 app_names = [app.get('appName') for app in apps]
                 if not self.create_apps(project_name, app_names, schema):
                     continue
                 self.generate_settings_content(app_names, project_name)
                 self.index_file_generator(project_name)
-                self.set_requirements(project_name)
-                command = update_venv_and_modules(project_name)
+                
+                command = update_venv_and_modules()
+                self.set_requirements(project_name, command)
                 self.stdout.write(self.style.ERROR(f'''
 Project (from {schema_file_name}): {project_name} is built successfully.\n 
 Copy following command and Enter in console:\n\t
@@ -65,6 +66,7 @@ Copy following command and Enter in console:\n\t
     echo "from django.contrib.auth import get_user_model;User = get_user_model(); User.objects.create_superuser('admin', 'admin@email.com', 'pass')" | python manage.py shell
     python manage.py runserver
             '''))
+            
             zip_file_path = zip_project_folder(project_name)
             if zip_file_path:
                 print(f'Folder "{project_name}" zipped and saved as: {zip_file_path}')
@@ -393,13 +395,12 @@ Copy following command and Enter in console:\n\t
             self.stdout.write(self.style.ERROR(f"An error occurred while generating and saving URL patterns for app {app_name}: {str(e)}"))
             return False
 
-    def create_authentication_app(self, project_name, schema):
+    def create_authentication_app(self, project_name):
         """
         Create the 'Authentication' app with the specified models and admin code inside the project folder.
 
         Args:
         project_name (str): The name of the Django project.
-        schema (dict): The schema for the project.
 
         Returns:
         bool: True if the app was created successfully, False otherwise.
@@ -525,19 +526,30 @@ admin.site.register(ApplicationUser, ApplicationUserAdmin)
         # Print a success message
         self.stdout.write(self.style.SUCCESS("settings.py and urls.py file has been updated successfully."))
     
-    def set_requirements(self, project_name):
+    def set_requirements(self, project_name, command):
         """
         Adds requirements.txt file in the root directory of the project
         :param project_name: Name of the django app
         :return: None
         """
+        runfile_txt_path = os.path.join(settings.BASE_DIR, project_name, 'RUNME')
+        with open(runfile_txt_path, 'a+') as f:
+            f.write(f'''
+    {command}
+    pip install -r requirements.txt
+    python manage.py makemigrations Authentication
+    python manage.py migrate
+    python manage.py makemigrations
+    python manage.py migrate
+    echo "from django.contrib.auth import get_user_model;User = get_user_model(); User.objects.create_superuser('admin', 'admin@email.com', 'pass')" | python manage.py shell
+    python manage.py runserver
+''')
         requirements_txt_path = os.path.join(settings.BASE_DIR, project_name , 'requirements.txt')
         try:
             requirements = get_requirements()
             with open(requirements_txt_path, 'w') as requirement_file:
                 requirement_file.write(requirements)
-                self.stdout.write(self.style.SUCCESS('Requirement.txt file created'))
+                self.stdout.write(self.style.SUCCESS('Requirement.txt and RUNFILE files created'))
         except Exception as e:
             self.stderr.write(str(e))
         
-

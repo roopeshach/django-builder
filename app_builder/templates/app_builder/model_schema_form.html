@@ -47,6 +47,8 @@
     <script>
         let modelFields = {{ model_fields|safe }};
         let allModels = {{ all_models|safe }};
+
+        console.log(modelFields );
         $(document).ready(function() {
             $('#add-app-btn').click(function() {
                 addAppSection();

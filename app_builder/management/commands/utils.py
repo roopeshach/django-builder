@@ -401,7 +401,7 @@ admin.site.index_title = "Welcome to {project_name} - Platform Portal"
 '''
     return full_settings_content, urls_content
 
-def update_venv_and_modules(project_name):
+def update_venv_and_modules():
     # Determine the OS (Windows or Linux)
     is_windows = sys.platform.startswith('win')
 
