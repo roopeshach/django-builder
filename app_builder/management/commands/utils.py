@@ -149,33 +149,33 @@ JAZZMIN_SETTINGS = {{
 # Define the content of jazzmin_tweaks_content as a string
     jazzmin_tweaks_content = f'''
 JAZZMIN_TWEAKS = {{
-    "navbar_small_text": False,
+  "navbar_small_text": False,
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
     "brand_colour": False,
-    "accent": "accent-indigo",
-    "navbar": "navbar-indigo navbar-light",
+    "accent": "accent-purple",
+    "navbar": "navbar-white navbar-light",
     "no_navbar_border": False,
     "navbar_fixed": False,
     "layout_boxed": False,
     "footer_fixed": False,
     "sidebar_fixed": False,
-    "sidebar": "sidebar-dark-indigo",
+    "sidebar": "sidebar-dark-navy",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": True,
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
-    "theme": "sketchy",
+    "theme": "united",
     "dark_mode_theme": None,
     "button_classes": {{
         "primary": "btn-outline-primary",
         "secondary": "btn-outline-secondary",
         "info": "btn-outline-info",
-        "warning": "btn-outline-warning",
-        "danger": "btn-outline-danger",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
         "success": "btn-outline-success"
     }},
     "site_title": "{project_name} Admin",
@@ -422,8 +422,6 @@ def update_venv_and_modules():
 
     return command
     
-
-
 def get_requirements():
     return """
 asgiref
@@ -461,3 +459,4 @@ sqlparse
 uritemplate
 urllib3
 """
+

@@ -66,7 +66,8 @@ NOT_REQUIRED = 'not_required'
 SPECIAL_FIELD_ARGS = {
     'ForeignKey': {
         'to': REQUIRED,
-        'on_delete': 'models.CASCADE',  # This is typically the required argument
+        'on_delete': 'models.CASCADE',  
+        'related_name' : REQUIRED , 
     },
     'OneToOneField': {
         'to': REQUIRED,
@@ -76,9 +77,13 @@ SPECIAL_FIELD_ARGS = {
         'to': REQUIRED,
     },
     'CharField': {
-        'max_length': REQUIRED,  # Indicate that max_length is required for CharFields
+        'max_length': REQUIRED, 
     },
-    # Add other fields that need special handling here.
+    'DecimalField':{
+        'decimal_places': NOT_REQUIRED,
+        'max_digits': REQUIRED,
+        
+    }
 }
 
 def get_field_options(field_class):

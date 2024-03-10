@@ -1,0 +1,76 @@
+{
+    "projectName": "DrishyaNepal",
+    "apps": [
+        {
+            "appName": "Main",
+            "models": [
+                {
+                    "modelName": "Photo",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "size",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "caption",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "photgrapher",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Photographer",
+                                "on_delete": "models.CASCADE",
+                                "undefined": "LogEntry"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Photographer",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "address",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "email",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "experience",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "200"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

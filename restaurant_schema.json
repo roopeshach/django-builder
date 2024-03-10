@@ -1,0 +1,420 @@
+{
+    "projectName": "AdvancedEcommerceSystem",
+    "apps": [
+        {
+            "appName": "Ecommerce",
+            "models": [
+                {
+                    "modelName": "Category",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "description",
+                            "fieldType": "TextField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Brand",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "description",
+                            "fieldType": "TextField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Product",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "description",
+                            "fieldType": "TextField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "price",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "image",
+                            "fieldType": "ImageField",
+                            "attributes": {
+                                "upload_to": "products"
+                            }
+                        },
+                        {
+                            "fieldName": "category",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Category",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "brand",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Brand",
+                                "on_delete": "models.CASCADE"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "modelName": "ProductVariant",
+                    "fields": [
+                        {
+                            "fieldName": "product",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Product",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "variant_name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "stock_quantity",
+                            "fieldType": "IntegerField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "attributes",
+                            "fieldType": "JSONField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Discount",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "percentage",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "start_date",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "end_date",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Cart",
+                    "fields": [
+                        {
+                            "fieldName": "user",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Authentication.ApplicationUser",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "items",
+                            "fieldType": "ManyToManyField",
+                            "attributes": {
+                                "to": "ProductVariant"
+                            }
+                        },
+                        {
+                            "fieldName": "discount",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Discount",
+                                "on_delete": "models.SET_NULL",
+                                "null": "true"
+                            }
+                        },
+                        {
+                            "fieldName": "created_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "updated_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Favorite",
+                    "fields": [
+                        {
+                            "fieldName": "user",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Authentication.ApplicationUser",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "product",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Product",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "created_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Address",
+                    "fields": [
+                        {
+                            "fieldName": "user",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Authentication.ApplicationUser",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "street_address",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "city",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "state",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "zip_code",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "20"
+                            }
+                        },
+                        {
+                            "fieldName": "country",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "is_default",
+                            "fieldType": "BooleanField",
+                            "attributes": {
+                                "default": "false"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Order",
+                    "fields": [
+                        {
+                            "fieldName": "user",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Authentication.ApplicationUser",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "items",
+                            "fieldType": "ManyToManyField",
+                            "attributes": {
+                                "to": "ProductVariant"
+                            }
+                        },
+                        {
+                            "fieldName": "total_amount",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "order_date",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "shipping_address",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Address",
+                                "on_delete": "models.SET_NULL",
+                                "null": "true"
+                            }
+                        },
+                        {
+                            "fieldName": "status",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "100"
+                            }
+                        },
+                        {
+                            "fieldName": "payment_method",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "100"
+                            }
+                        },
+                        {
+                            "fieldName": "transaction_id",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "100",
+                                "null": "true"
+                            }
+                        },
+                        {
+                            "fieldName": "discount",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Discount",
+                                "on_delete": "models.SET_NULL",
+                                "null": "true"
+                            }
+                        },
+                        {
+                            "fieldName": "created_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "updated_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Review",
+                    "fields": [
+                        {
+                            "fieldName": "product",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Product",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "user",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Authentication.ApplicationUser",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "rating",
+                            "fieldType": "IntegerField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "comment",
+                            "fieldType": "TextField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "created_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "updated_at",
+                            "fieldType": "DateTimeField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Analytics",
+                    "fields": [
+                        {
+                            "fieldName": "product",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Product",
+                                "on_delete": "models.CASCADE"
+                            }
+                        },
+                        {
+                            "fieldName": "views",
+                            "fieldType": "IntegerField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "purchases",
+                            "fieldType": "IntegerField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "revenue",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "date",
+                            "fieldType": "DateField",
+                            "attributes": {}
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

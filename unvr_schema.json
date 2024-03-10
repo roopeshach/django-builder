@@ -1,0 +1,186 @@
+{
+    "projectName": "UNVR",
+    "apps": [
+        {
+            "appName": "IMS",
+            "models": [
+                {
+                    "modelName": "Student",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "address",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "phone",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "email",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "total_fee",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "total_paid",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "due",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "joined_date",
+                            "fieldType": "DateField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "image",
+                            "fieldType": "ImageField",
+                            "attributes": {
+                                "upload_to": "students"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Teacher",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "salary",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "phone",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "image",
+                            "fieldType": "ImageField",
+                            "attributes": {
+                                "upload_to": "teachers"
+                            }
+                        },
+                        {
+                            "fieldName": "bio",
+                            "fieldType": "TextField",
+                            "attributes": {}
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Course",
+                    "fields": [
+                        {
+                            "fieldName": "name",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "teacher",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Teacher",
+                                "on_delete": "models.CASCADE",
+                                "undefined": "LogEntry"
+                            }
+                        },
+                        {
+                            "fieldName": "description",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        },
+                        {
+                            "fieldName": "fee",
+                            "fieldType": "FloatField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "duration",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "254"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "modelName": "Enrollment",
+                    "fields": [
+                        {
+                            "fieldName": "student",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Student",
+                                "on_delete": "models.CASCADE",
+                                "undefined": "LogEntry"
+                            }
+                        },
+                        {
+                            "fieldName": "course",
+                            "fieldType": "ForeignKey",
+                            "attributes": {
+                                "to": "Course",
+                                "on_delete": "models.CASCADE",
+                                "undefined": "LogEntry"
+                            }
+                        },
+                        {
+                            "fieldName": "status",
+                            "fieldType": "CharField",
+                            "attributes": {
+                                "max_length": "200"
+                            }
+                        },
+                        {
+                            "fieldName": "enrolled_date",
+                            "fieldType": "DateField",
+                            "attributes": {}
+                        },
+                        {
+                            "fieldName": "description",
+                            "fieldType": "TextField",
+                            "attributes": {}
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

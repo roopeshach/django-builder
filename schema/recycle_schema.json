@@ -1,135 +1,140 @@
 {
-    "projectName": "Recycle",
+    "projectName": "RecycleIT",
     "apps": [
-        {
-            "appName": "Main",
-            "models": [
-                {
-                    "modelName": "Item",
-                    "fields": [
-                        {
-                            "fieldName": "name",
-                            "fieldType": "CharField",
-                            "attributes": {
-                                "max_length": "254"
-                            }
-                        },
-                        {
-                            "fieldName": "price_per_unit",
-                            "fieldType": "FloatField",
-                            "attributes": {}
-                        },
-                        {
-                            "fieldName": "unit",
-                            "fieldType": "CharField",
-                            "attributes": {
-                                "max_length": "254"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "modelName": "Customer",
-                    "fields": [
-                        {
-                            "fieldName": "user",
-                            "fieldType": "OneToOneField",
-                            "attributes": {
-                                "to": "Authentication.ApplicationUser",
-                                "on_delete": "models.CASCADE"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "modelName": "Vendor",
-                    "fields": [
-                        {
-                            "fieldName": "user",
-                            "fieldType": "OneToOneField",
-                            "attributes": {
-                                "to": "Authentication.ApplicationUser",
-                                "on_delete": "models.CASCADE"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "modelName": "Sales",
-                    "fields": [
-                        {
-                            "fieldName": "vendor",
-                            "fieldType": "ForeignKey",
-                            "attributes": {
-                                "to": "Vendor",
-                                "on_delete": "models.CASCADE",
-                                "undefined": "LogEntry"
-                            }
-                        },
-                        {
-                            "fieldName": "customer",
-                            "fieldType": "ForeignKey",
-                            "attributes": {
-                                "to": "Customer",
-                                "on_delete": "models.CASCADE",
-                                "undefined": "LogEntry"
-                            }
-                        },
-                        {
-                            "fieldName": "added_on",
-                            "fieldType": "DateTimeField",
-                            "attributes": {}
-                        },
-                        {
-                            "fieldName": "total_price",
-                            "fieldType": "FloatField",
-                            "attributes": {}
-                        },
-                        {
-                            "fieldName": "pickup",
-                            "fieldType": "ForeignKey",
-                            "attributes": {
-                                "to": "PickUp",
-                                "on_delete": "models.CASCADE",
-                                "undefined": "LogEntry"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "modelName": "PickUp",
-                    "fields": [
-                        {
-                            "fieldName": "customer",
-                            "fieldType": "ForeignKey",
-                            "attributes": {
-                                "to": "Customer",
-                                "on_delete": "models.CASCADE",
-                                "undefined": "LogEntry"
-                            }
-                        },
-                        {
-                            "fieldName": "added_on",
-                            "fieldType": "DateTimeField",
-                            "attributes": {}
-                        },
-                        {
-                            "fieldName": "location",
-                            "fieldType": "CharField",
-                            "attributes": {
-                                "max_length": "254"
-                            }
-                        },
-                        {
-                            "fieldName": "items",
-                            "fieldType": "ManyToManyField",
-                            "attributes": {
-                                "to": "Item"
-                            }
-                        }
-                    ]
+      {
+        "appName": "Main",
+        "models": [
+          {
+            "modelName": "RecycleItemCategory",
+            "fields": [
+              {
+                "fieldName": "name",
+                "fieldType": "CharField",
+                "attributes": {
+                  "max_length": "100"
                 }
+              },
+              {
+                "fieldName": "description",
+                "fieldType": "TextField",
+                "attributes": {
+                  "null": "True"
+                }
+              }
             ]
-        }
+          },
+          {
+            "modelName": "Item",
+            "fields": [
+              {
+                "fieldName": "name",
+                "fieldType": "CharField",
+                "attributes": {
+                  "max_length": "254"
+                }
+              },
+              {
+                "fieldName": "price_per_unit",
+                "fieldType": "FloatField",
+                "attributes": {}
+              },
+              {
+                "fieldName": "unit",
+                "fieldType": "CharField",
+                "attributes": {
+                  "max_length": "20"
+                }
+              },
+              {
+                "fieldName": "category",
+                "fieldType": "ForeignKey",
+                "attributes": {
+                  "to": "RecycleItemCategory",
+                  "on_delete": "models.CASCADE"
+                }
+              }
+            ]
+          },
+          {
+            "modelName": "PickupBucket",
+            "fields": [
+              {
+                "fieldName": "user",
+                "fieldType": "OneToOneField",
+                "attributes": {
+                  "to": "Authentication.ApplicationUser",
+                  "on_delete": "models.CASCADE"
+                }
+              },
+              {
+                "fieldName": "items",
+                "fieldType": "ManyToManyField",
+                "attributes": {
+                  "to": "Item"
+                }
+              },
+              {
+                "fieldName": "created_at",
+                "fieldType": "DateTimeField",
+                "attributes": {}
+              },
+              {
+                "fieldName": "updated_at",
+                "fieldType": "DateTimeField",
+                "attributes": {}
+              }
+            ]
+          },
+          {
+            "modelName": "PickupOrder",
+            "fields": [
+              {
+                "fieldName": "pickup_bucket",
+                "fieldType": "ForeignKey",
+                "attributes": {
+                  "to": "PickupBucket",
+                  "on_delete": "models.CASCADE"
+                }
+              },
+              {
+                "fieldName": "customer",
+                "fieldType": "ForeignKey",
+                "attributes": {
+                  "to": "Authentication.ApplicationUser",
+                  "on_delete": "models.CASCADE"
+                }
+              },
+              {
+                "fieldName": "pickup_date",
+                "fieldType": "DateTimeField",
+                "attributes": {}
+              },
+              {
+                "fieldName": "status",
+                "fieldType": "CharField",
+                "attributes": {
+                  "choices": [
+                    ["Pending", "Pending"],
+                    ["Completed", "Completed"],
+                    ["Cancelled", "Cancelled"]
+                  ],
+                  "max_length": "50"
+                }
+              },
+              {
+                "fieldName": "created_at",
+                "fieldType": "DateTimeField",
+                "attributes": {}
+              },
+              {
+                "fieldName": "updated_at",
+                "fieldType": "DateTimeField",
+                "attributes": {}
+              }
+            ]
+          }
+        ]
+      }
     ]
-}
+  }
+  
